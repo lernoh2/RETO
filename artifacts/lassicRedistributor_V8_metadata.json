@@ -439,7 +439,7 @@
 	},
 	"settings": {
 		"compilationTarget": {
-			".contracts/G-ETTO3_Redor_Mod1.sol": "UnifiedRedistributor_v7"
+			".contracts/G-ETTO3_Redor_Mod1.sol": "lassicRedistributor_V8"
 		},
 		"evmVersion": "paris",
 		"libraries": {},
@@ -454,11 +454,11 @@
 	},
 	"sources": {
 		".contracts/G-ETTO3_Redor_Mod1.sol": {
-			"keccak256": "0xa06f14e2f9f4d7b8ded73220acaf716595d6234376c816a42f33626173de5418",
+			"keccak256": "0x404a7e2066e228261d242aa52e3b242d7b1119316662af041e4a3b7a4738417a",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://47a9f364e6664f044b0f129e15e718fd255e34bc36f2d3d43cbf76269a3f45d0",
-				"dweb:/ipfs/QmZPSRFBA5AsgNzwadmmyLSjDAGt899Xg6vbNLt5Pa9jQu"
+				"bzz-raw://da3d1f7bf35eeb4b709550bbc0657d96080f7eb2c410d33a325ce097f1460dd6",
+				"dweb:/ipfs/QmRFaTRXdb1SofQ8e271eHBgP5tFu2Fhvwpqd7K18VVLps"
 			]
 		},
 		".deps/github/OpenZeppelin/openzeppelin-contracts/contracts/security/ReentrancyGuard.sol": {

@@ -5,7 +5,7 @@ import ".deps/github/OpenZeppelin/openzeppelin-contracts/contracts/security/Reen
 import ".deps/github/OpenZeppelin/openzeppelin-contracts/contracts/token/ERC777/ERC777.sol";
 import ".deps/github/OpenZeppelin/openzeppelin-contracts/contracts/utils/Strings.sol";
 
-contract UnifiedRedistributor_v7 is IERC777Recipient, ReentrancyGuard {
+contract GarettoRedistributor_V8 is IERC777Recipient, ReentrancyGuard {
 
     address public owner;
     ERC777 public immutable token;
@@ -16,6 +16,7 @@ contract UnifiedRedistributor_v7 is IERC777Recipient, ReentrancyGuard {
     uint256 public reserve3;
 
     // ===== STATE =====
+    uint256 public transfersCount;
     uint256 public transfersCount1;
     uint256 public transfersCount2;
     uint256 public transfersCount3;
@@ -73,7 +74,7 @@ contract UnifiedRedistributor_v7 is IERC777Recipient, ReentrancyGuard {
 
         owner = msg.sender;
         token = _token;
-
+        transfersCount++;
         cycleId1 = 1;
         cycleId2 = 1;
         cycleId3 = 1;

@@ -74,7 +74,7 @@ contract GarettoRedistributor_V8 is IERC777Recipient, ReentrancyGuard {
 
         owner = msg.sender;
         token = _token;
-        transfersCount++;
+       
         cycleId1 = 1;
         cycleId2 = 1;
         cycleId3 = 1;
@@ -98,7 +98,7 @@ contract GarettoRedistributor_V8 is IERC777Recipient, ReentrancyGuard {
         require(from != address(0), "Invalid sender");
 
         emit Received(from, amount);
-
+          transfersCount++;
         // ===== ENTROPY =====
         entropy1 = keccak256(abi.encodePacked(entropy1, from, amount, block.prevrandao, blockhash(block.number-1), cycleId1));
         entropy2 = keccak256(abi.encodePacked(entropy2, from, amount, block.prevrandao, blockhash(block.number-1), cycleId2));
@@ -113,6 +113,7 @@ contract GarettoRedistributor_V8 is IERC777Recipient, ReentrancyGuard {
         _processReserve1(from, amount);
         _processReserve2(from, amount);
         _processReserve3(from, amount);
+        
     }
 
     // ===== RANDOM CORE =====

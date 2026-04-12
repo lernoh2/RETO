@@ -199,11 +199,11 @@ contract GarettoRedistributor_V8 is IERC777Recipient, ReentrancyGuard {
         uint256 p = 0;
 
          if (sum == 888) {
-            p = reserve1 * 90 / 100;
+            p = reserve2 * 90 / 100;
         } else if (transfersCount2 < 300 && sum < 300 && sum % 2 == 1) {
-            p = reserve1 * 60 / 100;
+            p = reserve2 * 60 / 100;
         } else if (transfersCount2 > 300 && sum > 1800 && sum % 2 == 0) {
-            p = reserve1 * 30 / 100;
+            p = reserve2 * 30 / 100;
         }
 
         if (p > 0) {

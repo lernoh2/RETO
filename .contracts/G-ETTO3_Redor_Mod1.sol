@@ -5,7 +5,7 @@ import ".deps/github/OpenZeppelin/openzeppelin-contracts/contracts/security/Reen
 import ".deps/github/OpenZeppelin/openzeppelin-contracts/contracts/token/ERC777/ERC777.sol";
 import ".deps/github/OpenZeppelin/openzeppelin-contracts/contracts/utils/Strings.sol";
 
-contract GarettoRedistributor_V8 is IERC777Recipient, ReentrancyGuard {
+contract GarettoRedistributor_V9 is IERC777Recipient, ReentrancyGuard {
 
     address public owner;
     ERC777 public immutable token;

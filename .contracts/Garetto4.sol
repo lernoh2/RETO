@@ -3,7 +3,7 @@ pragma solidity 0.8.19;
 
 import ".deps/github/OpenZeppelin/openzeppelin-contracts/contracts/token/ERC777/ERC777.sol";
 
-contract GarettoTokenVersion8 is ERC777 {
+contract GarettoTokenVersion9 is ERC777 {
 
     address public owner;
     address public redistributor;
@@ -28,7 +28,7 @@ contract GarettoTokenVersion8 is ERC777 {
     event RedistributorSet(address indexed redistributor);
     
 
-     constructor() ERC777("Garetto_V8", "G-ETTO_V8", new address[](0)) {
+     constructor() ERC777("Garetto_V9", "G-ETTO_V9", new address[](0)) {
         _mint(msg.sender, 10000000 * 10 ** 18, "", "");
         owner = msg.sender;
         isFeeExempt[msg.sender] = true;

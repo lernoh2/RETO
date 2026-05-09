@@ -1,0 +1,6 @@
+{
+  "@chainlink/contracts@1.5.0/src/v0.8/vrf/dev/VRFV2PlusWrapperConsumerBase.sol": ".deps/npm/@chainlink/contracts@1.5.0/src/v0.8/vrf/dev/VRFV2PlusWrapperConsumerBase.sol",
+  "@chainlink/contracts@1.5.0/src/v0.8/shared/interfaces/LinkTokenInterface.sol": ".deps/npm/@chainlink/contracts@1.5.0/src/v0.8/shared/interfaces/LinkTokenInterface.sol",
+  "@chainlink/contracts@1.5.0/src/v0.8/vrf/dev/interfaces/IVRFV2PlusWrapper.sol": ".deps/npm/@chainlink/contracts@1.5.0/src/v0.8/vrf/dev/interfaces/IVRFV2PlusWrapper.sol",
+  "@chainlink/contracts@1.5.0/src/v0.8/vrf/dev/libraries/VRFV2PlusClient.sol": ".deps/npm/@chainlink/contracts@1.5.0/src/v0.8/vrf/dev/libraries/VRFV2PlusClient.sol"
+}

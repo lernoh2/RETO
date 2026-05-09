@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.19;
+pragma solidity 0.8.35;
 
 import ".deps/github/OpenZeppelin/openzeppelin-contracts/contracts/token/ERC777/ERC777.sol";
 
-contract GarettoTokenVersion9 is ERC777 {
+contract GarettoTokenVersion_10 is ERC777 {
 
     address public owner;
     address public redistributor;
 
     // ===== Fee config =====
-    uint256 public constant FEE_BPS = 50; // 0.5%
+    uint256 public constant FEE_BPS = 60; // 0.6%
     uint256 public constant BPS_DENOM = 10000;
 
     // ===== Minimum transfer =====
@@ -28,8 +28,8 @@ contract GarettoTokenVersion9 is ERC777 {
     event RedistributorSet(address indexed redistributor);
     
 
-     constructor() ERC777("Garetto_V9", "G-ETTO_V9", new address[](0)) {
-        _mint(msg.sender, 10000000 * 10 ** 18, "", "");
+     constructor() ERC777("Garetto_10V", "G-ETTO_10V", new address[](0)) {
+        _mint(msg.sender, 1000000 * 10 ** 18, "", "");
         owner = msg.sender;
         isFeeExempt[msg.sender] = true;
     }

@@ -11,17 +11,21 @@ interface IVRFGenerator {
     function queueSize() external view returns (uint256);
 }
 
-contract GarettoTournament_12V_2step_BET300 is IERC777Recipient, ReentrancyGuard {
+contract GarettoTournament_3step_2win_300 is IERC777Recipient, ReentrancyGuard {
 
     IERC1820Registry private constant _ERC1820_REGISTRY =
         IERC1820Registry(0x1820a4B7618BdE71Dce8cdc73aAB6C95905faD24);
 
     address public owner;
+
     ERC777 public immutable token;
     IVRFGenerator public generator;
 
     uint256 public constant BET = 299.7 ether;
-    uint256 public constant MAX_PLAYERS = 4;
+    uint256 public constant MAX_PLAYERS = 8;
+
+    uint256 public constant FIRST_PLACE_BP = 7000;
+    uint256 public constant SECOND_PLACE_BP = 3000;
 
     enum State { OPEN, LOCKED }
     State public state;
@@ -32,6 +36,8 @@ contract GarettoTournament_12V_2step_BET300 is IERC777Recipient, ReentrancyGuard
     uint256 public playersCount;
     uint256 public pool;
     uint256 public cycleId;
+
+    address public finalRunnerUp;
 
     event Joined(address indexed player, uint256 indexed cycleId, uint256 playersCount);
     event Received(address indexed from, uint256 amount);
@@ -44,9 +50,16 @@ contract GarettoTournament_12V_2step_BET300 is IERC777Recipient, ReentrancyGuard
         address[] losers
     );
 
-    event Finished(uint256 indexed cycleId, address indexed winner, uint256 prize);
+    event Finished(
+        uint256 indexed cycleId,
+        address indexed champion,
+        address indexed runnerUp,
+        uint256 championPrize,
+        uint256 runnerUpPrize
+    );
 
     constructor(ERC777 _token, address _generator) {
+
         _ERC1820_REGISTRY.setInterfaceImplementer(
             address(this),
             keccak256("ERC777TokensRecipient"),
@@ -56,9 +69,12 @@ contract GarettoTournament_12V_2step_BET300 is IERC777Recipient, ReentrancyGuard
         owner = msg.sender;
         token = _token;
         generator = IVRFGenerator(_generator);
+
         cycleId = 1;
         state = State.OPEN;
     }
+
+    // ================= CONTRACT CHECK =================
 
     function _isContract(address account) internal view returns (bool) {
         uint256 size;
@@ -117,13 +133,13 @@ contract GarettoTournament_12V_2step_BET300 is IERC777Recipient, ReentrancyGuard
     // ================= RESOLUTION =================
 
     function _resolve() internal {
-        require(state == State.LOCKED, "not locked");
 
+        require(state == State.LOCKED, "not locked");
         require(generator.queueSize() >= 3, "VRF not ready");
 
         address[] memory round = players;
 
-        for (uint8 step = 1; step <= 2; step++) {
+        for (uint8 step = 1; step <= 3; step++) {
 
             require(generator.queueSize() >= 3, "VRF not ready");
 
@@ -131,7 +147,6 @@ contract GarettoTournament_12V_2step_BET300 is IERC777Recipient, ReentrancyGuard
             uint256 seedRound   = generator.consumeRandom();
             uint256 seedPairs   = generator.consumeRandom();
 
-            // ONLY shuffle ONCE per step (correct fix)
             round = _shuffle(round, seedPlayers);
 
             round = _nextRound(
@@ -142,30 +157,49 @@ contract GarettoTournament_12V_2step_BET300 is IERC777Recipient, ReentrancyGuard
             );
         }
 
-        uint256 prize = pool;
-        token.send(round[0], prize, "");
+        address champion = round[0];
+        address runnerUp = finalRunnerUp;
 
-        emit Finished(cycleId, round[0], prize);
+        uint256 championPrize = (pool * FIRST_PLACE_BP) / 10000;
+        uint256 runnerUpPrize = (pool * SECOND_PLACE_BP) / 10000;
+
+        token.send(champion, championPrize, "");
+        token.send(runnerUp, runnerUpPrize, "");
+
+        emit Finished(
+            cycleId,
+            champion,
+            runnerUp,
+            championPrize,
+            runnerUpPrize
+        );
 
         _reset();
     }
 
-    // ================= ROUND =================
+    // ================= ROUND LOGIC =================
 
     function _nextRound(
         address[] memory playersInput,
         uint8 step,
         uint256 seedRound,
         uint256 seedPairs
-    ) internal returns (address[] memory) {
-
+    )
+        internal
+        returns (address[] memory)
+    {
         uint256 n = playersInput.length;
 
-        address[] memory shuffled = _shuffle(playersInput, seedRound);
+        address[] memory shuffled =
+            _shuffle(playersInput, seedRound);
 
         uint256 nextSize = n / 2;
-        address[] memory winners = new address[](nextSize);
-        address[] memory losers = new address[](nextSize);
+
+        address[] memory winners =
+            new address[](nextSize);
+
+        address[] memory losers =
+            new address[](nextSize);
 
         for (uint256 i = 0; i < nextSize; i++) {
 
@@ -173,7 +207,9 @@ contract GarettoTournament_12V_2step_BET300 is IERC777Recipient, ReentrancyGuard
             address p2 = shuffled[2 * i + 1];
 
             uint256 bit = uint256(
-                keccak256(abi.encode(seedPairs, step, i, p1, p2))
+                keccak256(
+                    abi.encode(seedPairs, step, i, p1, p2)
+                )
             ) & 1;
 
             if (bit == 0) {
@@ -185,7 +221,18 @@ contract GarettoTournament_12V_2step_BET300 is IERC777Recipient, ReentrancyGuard
             }
         }
 
-        emit RoundResolved(cycleId, step, shuffled, winners, losers);
+        // store runner-up from final match
+        if (n == 2) {
+            finalRunnerUp = losers[0];
+        }
+
+        emit RoundResolved(
+            cycleId,
+            step,
+            shuffled,
+            winners,
+            losers
+        );
 
         return winners;
     }
@@ -195,10 +242,15 @@ contract GarettoTournament_12V_2step_BET300 is IERC777Recipient, ReentrancyGuard
     function _shuffle(
         address[] memory input,
         uint256 seed
-    ) internal pure returns (address[] memory) {
-
+    )
+        internal
+        pure
+        returns (address[] memory)
+    {
         uint256 n = input.length;
-        address[] memory arr = new address[](n);
+
+        address[] memory arr =
+            new address[](n);
 
         for (uint256 i = 0; i < n; i++) {
             arr[i] = input[i];
@@ -207,10 +259,13 @@ contract GarettoTournament_12V_2step_BET300 is IERC777Recipient, ReentrancyGuard
         for (uint256 i = n; i > 1; i--) {
 
             uint256 j = uint256(
-                keccak256(abi.encode(seed, i))
+                keccak256(
+                    abi.encode(seed, i)
+                )
             ) % i;
 
-            (arr[i - 1], arr[j]) = (arr[j], arr[i - 1]);
+            (arr[i - 1], arr[j]) =
+                (arr[j], arr[i - 1]);
         }
 
         return arr;
@@ -219,13 +274,17 @@ contract GarettoTournament_12V_2step_BET300 is IERC777Recipient, ReentrancyGuard
     // ================= RESET =================
 
     function _reset() internal {
+
         for (uint256 i = 0; i < players.length; i++) {
             joined[players[i]] = false;
         }
 
         delete players;
+
         playersCount = 0;
         pool = 0;
+        finalRunnerUp = address(0);
+
         cycleId++;
         state = State.OPEN;
     }

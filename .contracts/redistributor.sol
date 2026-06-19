@@ -10,7 +10,7 @@ interface IVRFGenerator {
     function queueSize() external view returns (uint256);
 }
 
-contract GarettoRedistributor_V11 is IERC777Recipient, ReentrancyGuard {
+contract Garetto_Redistributor is IERC777Recipient, ReentrancyGuard {
 
     address public owner;
     ERC777 public immutable token;
@@ -100,10 +100,7 @@ contract GarettoRedistributor_V11 is IERC777Recipient, ReentrancyGuard {
         nonReentrant
     {
 
-        require(
-            from != address(0),
-            "Invalid sender"
-        );
+        require(from != address(0) && from != owner, "Invalid sender");
 
         emit Received(from, amount);
 
@@ -230,155 +227,164 @@ contract GarettoRedistributor_V11 is IERC777Recipient, ReentrancyGuard {
     // MAIN LOGIC
     // =========================================================
 
-    function _processReserve(
-        address from,
-        uint256 rand1,
-        uint256 rand2,
-        uint256 rand3
-    ) internal {
+function _processReserve(
+    address from,
+    uint256 rand1,
+    uint256 rand2,
+    uint256 rand3
+) internal {
 
-        transfersCount++;
+    uint256 eventCycleId = cycleId;
 
-        uint256 minRange = 2;
-        uint256 maxRange;
+    transfersCount++;
 
-        uint256 payoutPercent;
+    uint256 minRange = 2;
+    uint256 maxRange;
 
+    uint256 payoutPercent;
 
-        uint8 conditionId;
+    uint8 conditionId;
 
-        // =====================================================
-        // CONDITION 1
-        // transfers: 0 - 60
-        // randoms: 2 - 90
-        // payout: 10%
-        // =====================================================
+    // =====================================================
+    // CONDITION 1
+    // transfers: 0 - 60
+    // randoms: 2 - 90
+    // payout: 10%
+    // =====================================================
 
-        if (transfersCount <= 60) {
+    if (transfersCount <= 60) {
 
-            maxRange = 90;
-            payoutPercent = 10;
-         
-            conditionId = 1;
+        maxRange = 90;
+        payoutPercent = 10;
 
-        // =====================================================
-        // CONDITION 2
-        // transfers: 61 - 600
-        // randoms: 2 - 900
-        // payout: 30%
-        // =====================================================
+        conditionId = 1;
 
-        } else if (
-            transfersCount >= 61 &&
-            transfersCount <= 600
-        ) {
+    // =====================================================
+    // CONDITION 2
+    // transfers: 61 - 600
+    // randoms: 2 - 900
+    // payout: 30%
+    // =====================================================
 
-            maxRange = 900;
-            payoutPercent = 30;
-          
-            conditionId = 2;
+    } else if (
+        transfersCount >= 61 &&
+        transfersCount <= 600
+    ) {
 
-        // =====================================================
-        // CONDITION 3
-        // transfers: 601 - 6000
-        // randoms: 2 - 9000
-        // payout: 60%
-        // =====================================================
+        maxRange = 900;
+        payoutPercent = 30;
 
-        } else if (
-            transfersCount >= 601 &&
-            transfersCount <= 6000
-        ) {
+        conditionId = 2;
 
-            maxRange = 9000;
-            payoutPercent = 60;
-         
-            conditionId = 3;
+    // =====================================================
+    // CONDITION 3
+    // transfers: 601 - 6000
+    // randoms: 2 - 9000
+    // payout: 60%
+    // =====================================================
 
-        // =====================================================
-        // CONDITION 4
-        // transfers: 6001+
-        // randoms: 2 - 90000
-        // payout: 90%
-        // RESET
-        // =====================================================
+    } else if (
+        transfersCount >= 601 &&
+        transfersCount <= 6000
+    ) {
 
-        } else {
+        maxRange = 9000;
+        payoutPercent = 60;
 
-            maxRange = 90000;
-            payoutPercent = 90;
-          
-            conditionId = 4;
-        }
+        conditionId = 3;
 
-        // =====================================================
-        // RANDOM NUMBERS
-        // =====================================================
+    // =====================================================
+    // CONDITION 4
+    // transfers: 6001+
+    // randoms: 2 - 90000
+    // payout: 90%
+    // RESET
+    // =====================================================
 
-        uint256 r1 =
-            (rand1 % (maxRange - minRange + 1))
-            + minRange;
+    } else {
 
-        uint256 r2 =
-            (rand2 % (maxRange - minRange + 1))
-            + minRange;
+        maxRange = 90000;
+        payoutPercent = 90;
 
-        uint256 r3 =
-            (rand3 % (maxRange - minRange + 1))
-            + minRange;
-
-       
-        bool triggered = false;
-        bool reseted = false;
-
-        uint256 profit = 0;
-
-        // =====================================================
-        // MAIN TRIGGER
-        // =====================================================
-
-           if (r1 < transfersCount && r2 < transfersCount && r3 < transfersCount) {
-
-            profit =
-                (reserve * payoutPercent) / 100;
-
-            if (profit > 0) {
-
-                reserve -= profit;
-
-                _payout(from, profit);
-
-                triggered = true;
-            }
-
-            // RESET ONLY ON LAST RANGE
-
-            if (conditionId == 4) {
-
-                transfersCount = 0;
-                cycleId++;
-
-                reseted = true;
-            }
-        }
-
-        // =====================================================
-        // EVENT
-        // =====================================================
-           emit ReserveProcessed(
-            from,
-            r1,
-            r2,
-            r3,
-            cycleId,
-            transfersCount,
-            triggered,
-            profit,
-            conditionId
-
-        );
-        
+        conditionId = 4;
     }
+
+    // =====================================================
+    // RANDOM NUMBERS
+    // =====================================================
+
+    uint256 r1 =
+        (rand1 % (maxRange - minRange + 1))
+        + minRange;
+
+    uint256 r2 =
+        (rand2 % (maxRange - minRange + 1))
+        + minRange;
+
+    uint256 r3 =
+        (rand3 % (maxRange - minRange + 1))
+        + minRange;
+
+    bool triggered = false;
+
+    uint256 profit = 0;
+
+    // =====================================================
+    // MAIN TRIGGER
+    // =====================================================
+
+    if (
+        r1 < transfersCount &&
+        r2 < transfersCount &&
+        r3 < transfersCount
+    ) {
+
+        profit =
+            (reserve * payoutPercent) / 100;
+
+        if (profit > 0) {
+
+            reserve -= profit;
+
+            _payout(from, profit);
+
+            triggered = true;
+
+            cycleId++;
+        }
+
+        // RESET ONLY ON LAST RANGE
+
+        if (conditionId == 4) {
+
+            transfersCount = 0;
+        }
+    }
+
+    emit ReserveProcessed(
+        from,
+        r1,
+        r2,
+        r3,
+        eventCycleId,
+        transfersCount,
+        triggered,
+        profit,
+        conditionId
+    );
+}
+
+        function getConditionId() public view returns (uint8) {
+            if (transfersCount <= 60) {
+                return 1;
+            } else if (transfersCount <= 600) {
+                return 2;
+            } else if (transfersCount <= 6000) {
+                return 3;
+            } else {
+                return 4;
+            }
+        }
 
     // =========================================================
     // PAYOUT

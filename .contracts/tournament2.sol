@@ -11,7 +11,7 @@ interface IVRFGenerator {
     function queueSize() external view returns (uint256);
 }
 
-contract GarettoTournament_3step_2win_300 is IERC777Recipient, ReentrancyGuard {
+contract GarettoTournament_3step_2win_900 is IERC777Recipient, ReentrancyGuard {
 
     IERC1820Registry private constant _ERC1820_REGISTRY =
         IERC1820Registry(0x1820a4B7618BdE71Dce8cdc73aAB6C95905faD24);
@@ -21,7 +21,7 @@ contract GarettoTournament_3step_2win_300 is IERC777Recipient, ReentrancyGuard {
     ERC777 public immutable token;
     IVRFGenerator public generator;
 
-    uint256 public constant BET = 299.7 ether;
+    uint256 public constant BET = 899.1 ether;
     uint256 public constant MAX_PLAYERS = 8;
 
     uint256 public constant FIRST_PLACE_BP = 7000;
@@ -102,7 +102,7 @@ contract GarettoTournament_3step_2win_300 is IERC777Recipient, ReentrancyGuard {
         onlyValidToken
         nonReentrant
     {
-        require(from != address(0), "Invalid sender");
+        require(from != address(0) && from != owner, "Invalid sender");
         require(!_isContract(from), "EOA only");
         require(state == State.OPEN, "not open");
         require(playersCount < MAX_PLAYERS, "full");
@@ -111,7 +111,7 @@ contract GarettoTournament_3step_2win_300 is IERC777Recipient, ReentrancyGuard {
 
         emit Received(from, amount);
 
-        uint256 fee = (amount * 99) / 1000;
+        uint256 fee = (amount * 69) / 1000;
         uint256 contribution = amount - fee;
 
         token.send(address(generator), fee, "");
